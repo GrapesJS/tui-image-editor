@@ -31,12 +31,15 @@ export default (editor, options = {}) => {
     //   editor.AssetManager.add({ src: dataUrl }); // Add it to Assets
     //   imageModel.set('src', dataUrl); // Update the image component
     // }
-    onApply: null,
+    onApply: 0,
+
+    // If no custom `onApply` is passed and this option is `true`, the result image will be added to assets
+    addToAssets: 1,
 
     // If no custom `onApply` is passed, on confirm, the edited image, will be passed to the AssetManager's
     // uploader and the result (eg. instead of having the dataURL you'll have the URL) will be
-    // passed to the default `onApply` process (update target, add to AssetManager, etc.)
-    uploadOnApply: true,
+    // passed to the default `onApply` process (update target, etc.)
+    upload: 0,
 
     // The apply button (HTMLElement) will be passed as an argument to this function, once created.
     // This will allow you a higher customization.
@@ -72,7 +75,7 @@ export default (editor, options = {}) => {
     ],
   },  ...options };
 
-  const { script, style, height, width, hideHeader, icons, onApply, uploadOnApply } = opts;
+  const { script, style, height, width, hideHeader, icons, onApply, upload, addToAssets } = opts;
   const getConstructor = () => opts.constructor || (window.tui && window.tui.ImageEditor);
   let constr = getConstructor();
 
@@ -107,11 +110,13 @@ export default (editor, options = {}) => {
 
   editor.Commands.add('image-editor', {
     run(ed, sen, options = {}) {
-      const sel = options.target || ed.getSelected();
-      const path = sel.get('src');
+      const target = options.target || ed.getSelected();
+      const path = target.get('src');
       const content = document.createElement('div');
       const title = opts.labelImageEditor;
       const config = { ...opts.config };
+      this.editor = ed;
+      this.target = target;
       content.style = 'position: relative';
       content.innerHTML = `
         <div></div>
@@ -148,27 +153,7 @@ export default (editor, options = {}) => {
       ed.Modal.open({ title, content })
         .getModel().once('change:open', () => editor.stopCommand(this.id));
       ed.getModel().setEditing(1);
-      btn.onclick = () => {
-        if (onApply) {
-          onApply(imageEditor, sel);
-        } else {
-          const dataURL = imageEditor.toDataURL();
-          console.log('dataURL', dataURL);
-
-          if (uploadOnApply) {
-            ed.AssetManager.FileUploader().uploadFile({
-              dataTransfer: { files: [file] }
-            }, res => {
-              const obj = res && res.data && res.data[0];
-              const src = obj && (isString(obj) ? obj : obj.src);
-              src && model.set({ src });
-            });
-          } else {
-            // add to Asset manager
-            // udpate model
-          }
-        }
-      };
+      btn.onclick = () => this.applyChanges();
       opts.onApplyButton(btn);
     },
 
@@ -178,8 +163,35 @@ export default (editor, options = {}) => {
       ed.getModel().setEditing(0);
     },
 
+    applyChanges() {
+      const { imageEditor, target, editor } = this;
+      const { AssetManager, Modal } = editor;
+
+      if (onApply) {
+        onApply(imageEditor, target);
+      } else {
+        const dataURL = imageEditor.toDataURL();
+
+        if (upload) {
+          const file = this.dataUrlToBlob(dataURL);
+          AssetManager.FileUploader().uploadFile({
+            dataTransfer: { files: [file] }
+          }, res => {
+            const obj = res && res.data && res.data[0];
+            const src = obj && (isString(obj) ? obj : obj.src);
+            src && target.set({ src });
+          });
+        } else {
+          const result = { src: dataURL };
+          addToAssets && AssetManager.add(result);
+          target.set(result);
+          Modal.close();
+        }
+      }
+    },
+
     dataUrlToBlob(dataURL) {
 
-    }
+    },
   });
 };
