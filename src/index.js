@@ -1,4 +1,5 @@
 export default (editor, options = {}) => {
+  const remoteIcons = 'https://raw.githubusercontent.com/nhnent/tui.image-editor/production/dist/svg/';
   const opts = { ...{
     // TOAST UI's configurations
     // http://nhnent.github.io/tui.image-editor/latest/ImageEditor.html
@@ -19,6 +20,20 @@ export default (editor, options = {}) => {
     // Hide the default editor header
     hideHeader: true,
 
+    // The TOAST UI editor isn't compiled with icons, so generally, you should download them and indicate
+    // the local path in the `includeUI.theme` configurations.
+    // Use this option to change them or set it to `false` to keep what is come in `includeUI.theme`
+    // By default, the plugin will try to use the editor's remote icons (which involves a cross-origin async
+    // request, indicated as unsafe by most of the browsers)
+    icons: {
+      'menu.normalIcon.path': `${remoteIcons}icon-d.svg`,
+      'menu.activeIcon.path': `${remoteIcons}icon-b.svg`,
+      'menu.disabledIcon.path': `${remoteIcons}icon-a.svg`,
+      'menu.hoverIcon.path': `${remoteIcons}icon-c.svg`,
+      'submenu.normalIcon.path': `${remoteIcons}icon-d.svg`,
+      'submenu.activeIcon.path': `${remoteIcons}icon-c.svg`,
+    },
+
     // Script to load dynamically in case no TOAST UI editor instance was found
     script: [
         'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.7/fabric.js',
@@ -35,7 +50,7 @@ export default (editor, options = {}) => {
     ],
   },  ...options };
 
-  const { script, style, height, width, hideHeader } = opts;
+  const { script, style, height, width, hideHeader, icons } = opts;
   const getConstructor = () => opts.constructor || (window.tui && window.tui.ImageEditor);
   let constr = getConstructor();
 
@@ -83,6 +98,10 @@ export default (editor, options = {}) => {
         uiSize: { height, width, },
       };
       if (hideHeader) config.includeUI.theme['header.display'] = 'none';
+      if (icons) config.includeUI.theme = {
+        ...config.includeUI.theme,
+        ...icons,
+      }
       this.imageEditor = new constr(content, config);
       ed.Modal.open({ title, content })
         .getModel().once('change:open', () => editor.stopCommand(this.id));
