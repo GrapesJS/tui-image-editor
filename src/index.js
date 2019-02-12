@@ -11,6 +11,9 @@ export default (editor, options = {}) => {
     // Label for the image editor (used in the modal)
     labelImageEditor: 'Image Editor',
 
+    // Label used on the apply button
+    labelApply: 'Apply',
+
     // Default editor height
     height: '650px',
 
@@ -19,6 +22,25 @@ export default (editor, options = {}) => {
 
     // Hide the default editor header
     hideHeader: true,
+
+    // By default, GrapesJS takes the modified image, adds it to the Asset Manager and update the target.
+    // If you need some custom logic you can use this custom 'onApply' function
+    // eg.
+    // onApply: (imageEditor, imageModel) => {
+    //   const dataUrl = imageEditor.toDataURL();
+    //   editor.AssetManager.add({ src: dataUrl }); // Add it to Assets
+    //   imageModel.set('src', dataUrl); // Update the image component
+    // }
+    onApply: null,
+
+    // If no custom `onApply` is passed, on confirm, the edited image, will be passed to the AssetManager's
+    // uploader and the result (eg. instead of having the dataURL you'll have the URL) will be
+    // passed to the default `onApply` process (update target, add to AssetManager, etc.)
+    uploadOnApply: true,
+
+    // The apply button (HTMLElement) will be passed as an argument to this function, once created.
+    // This will allow you a higher customization.
+    onApplyButton: () => {},
 
     // The TOAST UI editor isn't compiled with icons, so generally, you should download them and indicate
     // the local path in the `includeUI.theme` configurations.
@@ -50,7 +72,7 @@ export default (editor, options = {}) => {
     ],
   },  ...options };
 
-  const { script, style, height, width, hideHeader, icons } = opts;
+  const { script, style, height, width, hideHeader, icons, onApply, uploadOnApply } = opts;
   const getConstructor = () => opts.constructor || (window.tui && window.tui.ImageEditor);
   let constr = getConstructor();
 
@@ -90,6 +112,24 @@ export default (editor, options = {}) => {
       const content = document.createElement('div');
       const title = opts.labelImageEditor;
       const config = { ...opts.config };
+      content.style = 'position: relative';
+      content.innerHTML = `
+        <div></div>
+        <button class="tui-image-editor__apply-btn" style="
+          position: absolute;
+          top: 0; right: 0;
+          margin: 10px;
+          background-color: #fff;
+          font-size: 1rem;
+          border-radius: 3px;
+          border: none;
+          padding: 10px 20px;
+          cursor: pointer
+        ">
+          ${opts.labelApply}
+        </botton>
+      `;
+
       if (!config.includeUI) config.includeUI = {};
       config.includeUI = {
         theme: {},
@@ -102,16 +142,44 @@ export default (editor, options = {}) => {
         ...config.includeUI.theme,
         ...icons,
       }
-      this.imageEditor = new constr(content, config);
+      const btn = content.children[1];
+      const imageEditor = new constr(content.children[0], config);
+      this.imageEditor = imageEditor;
       ed.Modal.open({ title, content })
         .getModel().once('change:open', () => editor.stopCommand(this.id));
       ed.getModel().setEditing(1);
+      btn.onclick = () => {
+        if (onApply) {
+          onApply(imageEditor, sel);
+        } else {
+          const dataURL = imageEditor.toDataURL();
+          console.log('dataURL', dataURL);
+
+          if (uploadOnApply) {
+            ed.AssetManager.FileUploader().uploadFile({
+              dataTransfer: { files: [file] }
+            }, res => {
+              const obj = res && res.data && res.data[0];
+              const src = obj && (isString(obj) ? obj : obj.src);
+              src && model.set({ src });
+            });
+          } else {
+            // add to Asset manager
+            // udpate model
+          }
+        }
+      };
+      opts.onApplyButton(btn);
     },
 
     stop(ed) {
       const { imageEditor } = this;
       imageEditor && imageEditor.destroy();
       ed.getModel().setEditing(0);
+    },
+
+    dataUrlToBlob(dataURL) {
+
     }
   });
 };
