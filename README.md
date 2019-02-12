@@ -49,7 +49,21 @@ Directly in the browser
       // ...
       plugins: ['grapesjs-tui-image-editor'],
       pluginsOpts: {
-        'grapesjs-tui-image-editor': { /* options */ }
+        'grapesjs-tui-image-editor': {
+          config: {
+            includeUI: {
+              initMenu: 'filter',
+              theme: {
+                'menu.normalIcon.path': 'https://ui.toast.com/static/icon-d.4ef3abbd.svg',
+                'menu.activeIcon.path': 'https://ui.toast.com/static/icon-b.d70663d0.svg',
+                'menu.disabledIcon.path': 'https://ui.toast.com/static/icon-a.843c03ed.svg',
+                'menu.hoverIcon.path': 'https://ui.toast.com/static/icon-c.6f440c0d.svg',
+                'submenu.normalIcon.path': 'https://ui.toast.com/static/icon-d.4ef3abbd.svg',
+                'submenu.activeIcon.path': 'https://ui.toast.com/static/icon-c.6f440c0d.svg',
+              }
+            },
+          }
+        }
       }
   });
 </script>

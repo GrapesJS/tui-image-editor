@@ -84,13 +84,15 @@ export default (editor, options = {}) => {
       };
       if (hideHeader) config.includeUI.theme['header.display'] = 'none';
       this.imageEditor = new constr(content, config);
-      ed.Modal.open({ title, content,})
+      ed.Modal.open({ title, content })
         .getModel().once('change:open', () => editor.stopCommand(this.id));
+      ed.getModel().setEditing(1);
     },
 
-    stop() {
+    stop(ed) {
       const { imageEditor } = this;
       imageEditor && imageEditor.destroy();
+      ed.getModel().setEditing(0);
     }
   });
 };
