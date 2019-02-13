@@ -21,7 +21,7 @@ export default (editor, options = {}) => {
     width: '100%',
 
     // Hide the default editor header
-    hideHeader: true,
+    hideHeader: 1,
 
     // By default, GrapesJS takes the modified image, adds it to the Asset Manager and update the target.
     // If you need some custom logic you can use this custom 'onApply' function
@@ -39,7 +39,7 @@ export default (editor, options = {}) => {
     // If no custom `onApply` is passed, on confirm, the edited image, will be passed to the AssetManager's
     // uploader and the result (eg. instead of having the dataURL you'll have the URL) will be
     // passed to the default `onApply` process (update target, etc.)
-    upload: 1,
+    upload: 0,
 
     // The apply button (HTMLElement) will be passed as an argument to this function, once created.
     // This will allow you a higher customization.
@@ -109,33 +109,13 @@ export default (editor, options = {}) => {
 
 
   editor.Commands.add('image-editor', {
-    run(ed, sen, options = {}) {
-      const target = options.target || ed.getSelected();
-      const content = document.createElement('div');
-      const title = opts.labelImageEditor;
+    run(ed, s, options = {}) {
       this.editor = ed;
-      this.target = target;
-      content.style = 'position: relative';
-      content.innerHTML = `
-        <div></div>
-        <button class="tui-image-editor__apply-btn" style="
-          position: absolute;
-          top: 0; right: 0;
-          margin: 10px;
-          background-color: #fff;
-          font-size: 1rem;
-          border-radius: 3px;
-          border: none;
-          padding: 10px 20px;
-          cursor: pointer
-        ">
-          ${opts.labelApply}
-        </botton>
-      `;
-
+      this.target = options.target || ed.getSelected();
+      const content = this.createContent();
+      const title = opts.labelImageEditor;
       const btn = content.children[1];
-      const imageEditor = new constr(content.children[0], this.getEditorConfig());
-      this.imageEditor = imageEditor;
+      this.imageEditor = new constr(content.children[0], this.getEditorConfig());
       ed.Modal.open({ title, content })
         .getModel().once('change:open', () => editor.stopCommand(this.id));
       ed.getModel().setEditing(1);
@@ -169,6 +149,29 @@ export default (editor, options = {}) => {
       return config;
     },
 
+    createContent() {
+      const content = document.createElement('div');
+      content.style = 'position: relative';
+      content.innerHTML = `
+        <div></div>
+        <button class="tui-image-editor__apply-btn" style="
+          position: absolute;
+          top: 0; right: 0;
+          margin: 10px;
+          background-color: #fff;
+          font-size: 1rem;
+          border-radius: 3px;
+          border: none;
+          padding: 10px 20px;
+          cursor: pointer
+        ">
+          ${opts.labelApply}
+        </botton>
+      `;
+
+      return content;
+    },
+
     applyChanges() {
       const { imageEditor, target, editor } = this;
       const { AssetManager } = editor;
@@ -188,9 +191,8 @@ export default (editor, options = {}) => {
             src && this.applyToTarget(src);
           });
         } else {
-          const result = { src: dataURL };
-          addToAssets && AssetManager.add(result);
-          this.applyToTarget(result);
+          addToAssets && AssetManager.add({ src: dataURL });
+          this.applyToTarget(dataURL);
         }
       }
     },
