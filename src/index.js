@@ -117,9 +117,9 @@ export default (editor, options = {}) => {
       const content = this.createContent();
       const title = opts.labelImageEditor;
       const btn = content.children[1];
-      this.imageEditor = new constr(content.children[0], this.getEditorConfig());
       ed.Modal.open({ title, content })
         .getModel().once('change:open', () => editor.stopCommand(this.id));
+      this.imageEditor = new constr(content.children[0], this.getEditorConfig());
       ed.getModel().setEditing(1);
       btn.onclick = () => this.applyChanges();
       opts.onApplyButton(btn);
