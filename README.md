@@ -1,5 +1,10 @@
 # GrapesJS TOAST UI Image Editor
 
+TODO
+* Another command id
+* Add new toolbar icon to image components
+* Option custom "edit image" icon (better callback for the toolbar)
+* Update README
 
 ## Summary
 

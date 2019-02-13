@@ -77,7 +77,7 @@ export default (editor, options = {}) => {
     ],
   },  ...options };
 
-  const { script, style, height, width, hideHeader, icons, onApply, upload, addToAssets } = opts;
+  const { script, style, height, width, hideHeader, icons, onApply, upload, addToAssets, commandId } = opts;
   const getConstructor = () => opts.constructor || (window.tui && window.tui.ImageEditor);
   let constr = getConstructor();
 
@@ -110,15 +110,25 @@ export default (editor, options = {}) => {
   }
 
 
-  editor.Commands.add(opts.commandId, {
+  editor.Commands.add(commandId, {
     run(ed, s, options = {}) {
+      const { id } = this;
+
+      if (!constr) {
+        ed.log('TOAST UI Image editor not found', {
+          level: 'error',
+          ns: commandId,
+        });
+        return ed.stopCommand(id);
+      }
+
       this.editor = ed;
       this.target = options.target || ed.getSelected();
       const content = this.createContent();
       const title = opts.labelImageEditor;
       const btn = content.children[1];
       ed.Modal.open({ title, content })
-        .getModel().once('change:open', () => editor.stopCommand(this.id));
+        .getModel().once('change:open', () => ed.stopCommand(id));
       this.imageEditor = new constr(content.children[0], this.getEditorConfig());
       ed.getModel().setEditing(1);
       btn.onclick = () => this.applyChanges();
