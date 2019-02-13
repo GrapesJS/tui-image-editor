@@ -20,6 +20,9 @@ export default (editor, options = {}) => {
     // Default editor width
     width: '100%',
 
+    // Id to use to create the image editor command
+    commandId: 'image-editor',
+
     // Hide the default editor header
     hideHeader: 1,
 
@@ -61,17 +64,16 @@ export default (editor, options = {}) => {
 
     // Script to load dynamically in case no TOAST UI editor instance was found
     script: [
-        'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.7/fabric.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.7/fabric.min.js',
         'https://uicdn.toast.com/tui.code-snippet/v1.5.0/tui-code-snippet.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js',
-        'https://uicdn.toast.com/tui-color-picker/v2.2.0/tui-color-picker.js',
-        'https://uicdn.toast.com/tui-image-editor/latest/tui-image-editor.js'
+        'https://uicdn.toast.com/tui-color-picker/v2.2.0/tui-color-picker.min.js',
+        'https://uicdn.toast.com/tui-image-editor/v3.4.0/tui-image-editor.min.js'
       ],
 
     // In case the script is loaded this style will be loaded too
     style: [
-      'https://uicdn.toast.com/tui-color-picker/v2.2.0/tui-color-picker.css',
-      'https://uicdn.toast.com/tui-image-editor/latest/tui-image-editor.css'
+      'https://uicdn.toast.com/tui-color-picker/v2.2.0/tui-color-picker.min.css',
+      'https://uicdn.toast.com/tui-image-editor/v3.4.0/tui-image-editor.min.css'
     ],
   },  ...options };
 
@@ -108,7 +110,7 @@ export default (editor, options = {}) => {
   }
 
 
-  editor.Commands.add('image-editor', {
+  editor.Commands.add(opts.commandId, {
     run(ed, s, options = {}) {
       this.editor = ed;
       this.target = options.target || ed.getSelected();
