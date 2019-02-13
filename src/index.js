@@ -39,7 +39,7 @@ export default (editor, options = {}) => {
     // If no custom `onApply` is passed, on confirm, the edited image, will be passed to the AssetManager's
     // uploader and the result (eg. instead of having the dataURL you'll have the URL) will be
     // passed to the default `onApply` process (update target, etc.)
-    upload: 0,
+    upload: 1,
 
     // The apply button (HTMLElement) will be passed as an argument to this function, once created.
     // This will allow you a higher customization.
@@ -165,7 +165,7 @@ export default (editor, options = {}) => {
 
     applyChanges() {
       const { imageEditor, target, editor } = this;
-      const { AssetManager, Modal } = editor;
+      const { AssetManager } = editor;
 
       if (onApply) {
         onApply(imageEditor, target);
@@ -178,20 +178,34 @@ export default (editor, options = {}) => {
             dataTransfer: { files: [file] }
           }, res => {
             const obj = res && res.data && res.data[0];
-            const src = obj && (isString(obj) ? obj : obj.src);
-            src && target.set({ src });
+            const src = obj && (typeof obj === 'string' ? obj : obj.src);
+            src && this.applyToTarget(src);
           });
         } else {
           const result = { src: dataURL };
           addToAssets && AssetManager.add(result);
-          target.set(result);
-          Modal.close();
+          this.applyToTarget(result);
         }
       }
     },
 
-    dataUrlToBlob(dataURL) {
+    applyToTarget(result) {
+      this.target.set({ src: result });
+      this.editor.Modal.close();
+    },
 
+    dataUrlToBlob(dataURL) {
+      const data = dataURL.split(',');
+      const byteStr = window.atob(data[1]);
+      const type = data[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteStr.length);
+      const ia = new Uint8Array(ab);
+
+      for (let i = 0; i < byteStr.length; i++) {
+          ia[i] = byteStr.charCodeAt(i);
+      }
+
+      return new Blob([ab], { type });
     },
   });
 };
