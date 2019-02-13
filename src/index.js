@@ -111,10 +111,8 @@ export default (editor, options = {}) => {
   editor.Commands.add('image-editor', {
     run(ed, sen, options = {}) {
       const target = options.target || ed.getSelected();
-      const path = target.get('src');
       const content = document.createElement('div');
       const title = opts.labelImageEditor;
-      const config = { ...opts.config };
       this.editor = ed;
       this.target = target;
       content.style = 'position: relative';
@@ -135,20 +133,8 @@ export default (editor, options = {}) => {
         </botton>
       `;
 
-      if (!config.includeUI) config.includeUI = {};
-      config.includeUI = {
-        theme: {},
-        ...config.includeUI,
-        loadImage: { path, name: 1 },
-        uiSize: { height, width, },
-      };
-      if (hideHeader) config.includeUI.theme['header.display'] = 'none';
-      if (icons) config.includeUI.theme = {
-        ...config.includeUI.theme,
-        ...icons,
-      }
       const btn = content.children[1];
-      const imageEditor = new constr(content.children[0], config);
+      const imageEditor = new constr(content.children[0], this.getEditorConfig());
       this.imageEditor = imageEditor;
       ed.Modal.open({ title, content })
         .getModel().once('change:open', () => editor.stopCommand(this.id));
@@ -161,6 +147,26 @@ export default (editor, options = {}) => {
       const { imageEditor } = this;
       imageEditor && imageEditor.destroy();
       ed.getModel().setEditing(0);
+    },
+
+    getEditorConfig() {
+      const config = { ...opts.config };
+      const path = this.target.get('src');
+
+      if (!config.includeUI) config.includeUI = {};
+      config.includeUI = {
+        theme: {},
+        ...config.includeUI,
+        loadImage: { path, name: 1 },
+        uiSize: { height, width },
+      };
+      if (hideHeader) config.includeUI.theme['header.display'] = 'none';
+      if (icons) config.includeUI.theme = {
+        ...config.includeUI.theme,
+        ...icons,
+      }
+
+      return config;
     },
 
     applyChanges() {
