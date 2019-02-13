@@ -191,7 +191,10 @@ export default (editor, options = {}) => {
             src && this.applyToTarget(src);
           });
         } else {
-          addToAssets && AssetManager.add({ src: dataURL });
+          addToAssets && AssetManager.add({
+            src: dataURL,
+            name: (target.get('src') || '').split('/').pop(),
+          });
           this.applyToTarget(dataURL);
         }
       }
