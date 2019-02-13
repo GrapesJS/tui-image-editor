@@ -21,7 +21,7 @@ export default (editor, options = {}) => {
     width: '100%',
 
     // Id to use to create the image editor command
-    commandId: 'image-editor',
+    commandId: 'tui-image-editor',
 
     // Hide the default editor header
     hideHeader: 1,
@@ -109,7 +109,28 @@ export default (editor, options = {}) => {
     appendScript(scripts);
   }
 
+  // Update image component toolbar
+  const domc = editor.DomComponents;
+  const typeImage = domc.getType('image').model;
+  domc.addType('image', {
+    model: {
+      initToolbar() {
+        typeImage.prototype.initToolbar.apply(this, arguments);
+        const tb = this.get('toolbar');
+        const tbExists = tb.some(item => item.command === commandId);
 
+        if (!tbExists) {
+          tb.unshift({
+            attributes: { class: 'fa fa-pencil' },
+            command: commandId
+          });
+          this.set('toolbar', tb);
+        }
+      }
+    }
+  })
+
+  // Add the image editor command
   editor.Commands.add(commandId, {
     run(ed, s, options = {}) {
       const { id } = this;
