@@ -76,16 +76,16 @@ Directly in the browser
           config: {
             includeUI: {
               initMenu: 'filter',
-              theme: {
-                'menu.normalIcon.path': 'https://ui.toast.com/static/icon-d.4ef3abbd.svg',
-                'menu.activeIcon.path': 'https://ui.toast.com/static/icon-b.d70663d0.svg',
-                'menu.disabledIcon.path': 'https://ui.toast.com/static/icon-a.843c03ed.svg',
-                'menu.hoverIcon.path': 'https://ui.toast.com/static/icon-c.6f440c0d.svg',
-                'submenu.normalIcon.path': 'https://ui.toast.com/static/icon-d.4ef3abbd.svg',
-                'submenu.activeIcon.path': 'https://ui.toast.com/static/icon-c.6f440c0d.svg',
-              }
             },
-          }
+          },
+          icons: {
+            'menu.normalIcon.path': '../icon-d.svg',
+            'menu.activeIcon.path': '../icon-b.svg',
+            'menu.disabledIcon.path': '../icon-a.svg',
+            'menu.hoverIcon.path': '../icon-c.svg',
+            'submenu.normalIcon.path': '../icon-d.svg',
+            'submenu.activeIcon.path': '../icon-c.svg',
+          },
         }
       }
   });
