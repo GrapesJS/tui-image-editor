@@ -1,7 +1,7 @@
 {
   "name": "grapesjs-tui-image-editor",
-  "version": "0.3.0",
-  "description": "GrapesJS Plugin Boilerplate",
+  "version": "0.1.0",
+  "description": "GrapesJS TOAST UI Image Editor",
   "main": "dist/grapesjs-tui-image-editor.min.js",
   "scripts": {
     "lint": "eslint src",
@@ -16,8 +16,8 @@
   "keywords": [
     "grapesjs",
     "plugin",
-    "boilerplate",
-    "wysiwyg"
+    "image",
+    "editor"
   ],
   "author": "Artur Arseniev",
   "license": "BSD-3-Clause",
