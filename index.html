@@ -5,6 +5,7 @@
     <title>GrapesJS TOAST UI Image Editor</title>
     <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
     <script src="https://unpkg.com/grapesjs"></script>
+    <script src="https://unpkg.com/grapesjs-blocks-basic"></script>
     <script src="dist/grapesjs-tui-image-editor.min.js"></script>
     <style>
       body,
@@ -33,7 +34,7 @@
         container: '#gjs',
         fromElement: true,
 
-        plugins: ['grapesjs-tui-image-editor'],
+        plugins: ['grapesjs-blocks-basic', 'grapesjs-tui-image-editor'],
         pluginsOpts: {
           'grapesjs-tui-image-editor': { some: 'value' }
         }
