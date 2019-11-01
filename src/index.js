@@ -218,24 +218,33 @@ export default (editor, options = {}) => {
       if (onApply) {
         onApply(imageEditor, target);
       } else {
-        const dataURL = imageEditor.toDataURL();
-
-        if (upload) {
-          const file = this.dataUrlToBlob(dataURL);
-          AssetManager.FileUploader().uploadFile({
-            dataTransfer: { files: [file] }
-          }, res => {
-            const obj = res && res.data && res.data[0];
-            const src = obj && (typeof obj === 'string' ? obj : obj.src);
-            src && this.applyToTarget(src);
+        if (imageEditor.getDrawingMode() === 'CROPPER') {
+          imageEditor.crop(imageEditor.getCropzoneRect()).then(() => {
+            this.uploadImage(imageEditor, target, AssetManager);
           });
         } else {
-          addToAssets && AssetManager.add({
-            src: dataURL,
-            name: (target.get('src') || '').split('/').pop(),
-          });
-          this.applyToTarget(dataURL);
+          this.uploadImage(imageEditor, target, AssetManager);
         }
+      }
+    },
+
+    uploadImage(imageEditor, target, am) {
+      const dataURL = imageEditor.toDataURL();
+      if (upload) {
+        const file = this.dataUrlToBlob(dataURL);
+        am.FileUploader().uploadFile({
+          dataTransfer: { files: [file] }
+        }, res => {
+          const obj = res && res.data && res.data[0];
+          const src = obj && (typeof obj === 'string' ? obj : obj.src);
+          src && this.applyToTarget(src);
+        });
+      } else {
+        addToAssets && am.add({
+          src: dataURL,
+          name: (target.get('src') || '').split('/').pop(),
+        });
+        this.applyToTarget(dataURL);
       }
     },
 
