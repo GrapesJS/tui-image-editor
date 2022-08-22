@@ -1,7 +1,7 @@
 export default (editor, options = {}) => {
   const opts = {
     // TOAST UI's configurations
-    // http://nhnent.github.io/tui.image-editor/latest/ImageEditor.html
+    // https://nhn.github.io/tui.image-editor/latest/ImageEditor
     config: {},
 
     // Pass the editor constructor. By default, the `tui.ImageEditor` will be called
@@ -65,15 +65,15 @@ export default (editor, options = {}) => {
       'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.css',
       'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.css',
     ],
-    ...options
+    ...options,
   };
 
-  const { script, style, height, width, hideHeader, icons, onApply, upload, addToAssets, commandId } = opts;
-  const getConstructor = () => opts.constructor || (window.tui && window.tui.ImageEditor);
+  const { script, style, height, width, hideHeader, onApply, upload, addToAssets, commandId } = opts;
+  const getConstructor = () => opts.constructor || window?.tui?.ImageEditor;
   let constr = getConstructor();
 
   // Dynamic loading of the image editor scripts and styles
-  if (!constr && script) {
+  if (!constr && script?.length) {
     const { head } = document;
     const scripts = Array.isArray(script) ? [...script] : [script];
     const styles = Array.isArray(style) ? [...style] : [style];
@@ -139,8 +139,9 @@ export default (editor, options = {}) => {
       const content = this.createContent();
       const title = opts.labelImageEditor;
       const btn = content.children[1];
-      ed.Modal.open({ title, content })
-        .getModel().once('change:open', () => ed.stopCommand(id));
+      ed.Modal
+        .open({ title, content })
+        .onceClose(() => ed.stopCommand(commandId))
       this.imageEditor = new constr(content.children[0], this.getEditorConfig());
       ed.getModel().setEditing(1);
       btn.onclick = () => this.applyChanges();
@@ -148,8 +149,7 @@ export default (editor, options = {}) => {
     },
 
     stop(ed) {
-      const { imageEditor } = this;
-      imageEditor && imageEditor.destroy();
+      this.imageEditor?.destroy();
       ed.getModel().setEditing(0);
     },
 
@@ -165,10 +165,6 @@ export default (editor, options = {}) => {
         uiSize: { height, width },
       };
       if (hideHeader) config.includeUI.theme['header.display'] = 'none';
-      if (icons) config.includeUI.theme = {
-        ...config.includeUI.theme,
-        ...icons,
-      }
 
       return config;
     },

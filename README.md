@@ -7,7 +7,7 @@ Add the [TOAST UI Image Editor](https://ui.toast.com/tui-image-editor/) on Image
 ![Preview](https://user-images.githubusercontent.com/11614725/52981724-c195f800-33e1-11e9-98a9-f071a2721761.png)
 
 
-
+* Removed `icons` option.
 
 
 ## Summary
