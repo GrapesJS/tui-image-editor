@@ -1,6 +1,5 @@
 export default (editor, options = {}) => {
-  const remoteIcons = 'https://raw.githubusercontent.com/nhnent/tui.image-editor/production/dist/svg/';
-  const opts = { ...{
+  const opts = {
     // TOAST UI's configurations
     // http://nhnent.github.io/tui.image-editor/latest/ImageEditor.html
     config: {},
@@ -54,20 +53,6 @@ export default (editor, options = {}) => {
     // This will allow you a higher customization.
     onApplyButton: () => {},
 
-    // The TOAST UI editor isn't compiled with icons, so generally, you should download them and indicate
-    // the local path in the `includeUI.theme` configurations.
-    // Use this option to change them or set it to `false` to keep what is come in `includeUI.theme`
-    // By default, the plugin will try to use the editor's remote icons (which involves a cross-origin async
-    // request, indicated as unsafe by most of the browsers)
-    icons: {
-      'menu.normalIcon.path': `${remoteIcons}icon-d.svg`,
-      'menu.activeIcon.path': `${remoteIcons}icon-b.svg`,
-      'menu.disabledIcon.path': `${remoteIcons}icon-a.svg`,
-      'menu.hoverIcon.path': `${remoteIcons}icon-c.svg`,
-      'submenu.normalIcon.path': `${remoteIcons}icon-d.svg`,
-      'submenu.activeIcon.path': `${remoteIcons}icon-c.svg`,
-    },
-
     // Scripts to load dynamically in case no TOAST UI editor instance was found
     script: [
       'https://uicdn.toast.com/tui.code-snippet/v1.5.2/tui-code-snippet.min.js',
@@ -80,7 +65,8 @@ export default (editor, options = {}) => {
       'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.css',
       'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.css',
     ],
-  },  ...options };
+    ...options
+  };
 
   const { script, style, height, width, hideHeader, icons, onApply, upload, addToAssets, commandId } = opts;
   const getConstructor = () => opts.constructor || (window.tui && window.tui.ImageEditor);
