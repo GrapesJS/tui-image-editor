@@ -70,16 +70,15 @@ export default (editor, options = {}) => {
 
     // Scripts to load dynamically in case no TOAST UI editor instance was found
     script: [
-        'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.7/fabric.min.js',
-        'https://uicdn.toast.com/tui.code-snippet/v1.5.0/tui-code-snippet.min.js',
-        'https://uicdn.toast.com/tui-color-picker/v2.2.0/tui-color-picker.min.js',
-        'https://uicdn.toast.com/tui-image-editor/v3.4.0/tui-image-editor.min.js'
-      ],
+      'https://uicdn.toast.com/tui.code-snippet/v1.5.2/tui-code-snippet.min.js',
+      'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.js',
+      'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.js'
+    ],
 
     // In case the script is loaded this style will be loaded too
     style: [
-      'https://uicdn.toast.com/tui-color-picker/v2.2.0/tui-color-picker.min.css',
-      'https://uicdn.toast.com/tui-image-editor/v3.4.0/tui-image-editor.min.css'
+      'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.css',
+      'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.css',
     ],
   },  ...options };
 
