@@ -1,11 +1,16 @@
 import type grapesjs from 'grapesjs';
+import type tuiImageEditor from 'tui-image-editor';
+
+type ImageEditor = tuiImageEditor.ImageEditor;
+type IOptions = tuiImageEditor.IOptions;
+type Constructor<K> = { new(...any: any): K };
 
 export type PluginOptions = {
   /**
    * TOAST UI's configurations
    * https://nhn.github.io/tui.image-editor/latest/ImageEditor
    */
-  config?: Record<string, any>;
+  config?: IOptions;
 
   /**
    * Pass the editor constructor.
@@ -64,39 +69,40 @@ export type PluginOptions = {
    *    imageModel.set('src', dataUrl); // Update the image component
    * }
    */
-  onApply?: (imageEditor: any, imageModel: any) => void;
+  onApply?: ((imageEditor: any, imageModel: any) => void) | null;
 
   /**
    * If no custom `onApply` is passed and this option is `true`, the result image will be added to assets
    * @default true
    */
-   addToAssets?: boolean;
+  addToAssets?: boolean;
 
    /**
     * If no custom `onApply` is passed, on confirm, the edited image, will be passed to the
     * AssetManager's uploader and the result (eg. instead of having the dataURL you'll have the URL)
     * will be passed to the default `onApply` process (update target, etc.)
     */
-   upload?: boolean;
+  upload?: boolean;
 
-   /**
-    * The apply button (HTMLElement) will be passed as an argument to this function, once created.
-    * This will allow you a higher customization.
-    */
-   onApplyButton?: (btn: HTMLElement) => void;
+  /**
+   * The apply button (HTMLElement) will be passed as an argument to this function, once created.
+   * This will allow you a higher customization.
+   */
+  onApplyButton?: (btn: HTMLElement) => void;
 
-   /**
-    * Scripts to load dynamically in case no TOAST UI editor instance was found
-    */
-   script?: string[];
-   /**
-    * In case the script is loaded this style will be loaded too
-    */
-   style?: string[];
+  /**
+   * Scripts to load dynamically in case no TOAST UI editor instance was found
+   */
+  script?: string[];
+
+  /**
+   * In case the script is loaded this style will be loaded too
+   */
+  style?: string[];
 };
 
 const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
-  const opts: PluginOptions = {
+  const opts: Required<PluginOptions> = {
     config: {},
     constructor: '',
     labelImageEditor: 'Image Editor',
@@ -112,6 +118,7 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
     addToAssets: true,
     upload: false,
     onApplyButton: () => {},
+    onApply: null,
     script: [
       'https://uicdn.toast.com/tui.code-snippet/v1.5.2/tui-code-snippet.min.js',
       'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.js',
@@ -125,15 +132,18 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
   };
 
   const { script, style, height, width, hideHeader, onApply, upload, addToAssets, commandId } = opts;
-  const getConstructor = () => {
+  const hasWindow = typeof window !== 'undefined';
+
+  const getConstructor = (): Constructor<ImageEditor> => {
     return opts.constructor ||
       // @ts-ignore
-      window?.tui?.ImageEditor;
+      (hasWindow && window?.tui?.ImageEditor);
   };
+
   let constr = getConstructor();
 
   // Dynamic loading of the image editor scripts and styles
-  if (!constr && script?.length) {
+  if (!constr && script?.length && hasWindow) {
     const { head } = document;
     const scripts = Array.isArray(script) ? [...script] : [script];
     const styles = (Array.isArray(style) ? [...style] : [style]) as string[];
@@ -161,17 +171,18 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
   }
 
   // Update image component toolbar
-  const domc = editor.DomComponents;
-  const typeImage = domc.getType('image').model;
-  domc.addType('image', {
+  const { Components, Commands } = editor;
+
+  Components.addType('image', {
+    extendFn: ['initToolbar'],
     model: {
       initToolbar() {
-        typeImage.prototype.initToolbar.apply(this, arguments);
         const tb = this.get('toolbar');
-        const tbExists = tb.some(item => item.command === commandId);
+        // @ts-ignore
+        const tbExists = tb?.some(item => item.command === commandId);
 
         if (!tbExists) {
-          tb.unshift({
+          tb?.unshift({
             command: commandId,
             label: opts.toolbarIcon,
           });
@@ -179,30 +190,25 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
         }
       }
     }
-  })
+  });
 
   // Add the image editor command
-  editor.Commands.add(commandId, {
+  Commands.add(commandId, {
     run(ed, s, options = {}) {
-      const { id } = this;
-
       if (!constr) {
-        ed.log('TOAST UI Image editor not found', {
-          level: 'error',
-          ns: commandId,
-        });
-        return ed.stopCommand(id);
+        ed.log('TOAST UI Image editor not found', { level: 'error', ns: commandId });
+        return ed.stopCommand(commandId);
       }
 
-      this.editor = ed;
-      this.target = options.target || ed.getSelected();
+      const target = options.target || ed.getSelected();
+      this.target = target;
       const content = this.createContent();
       const title = opts.labelImageEditor;
       const btn = content.children[1];
-      ed.Modal
-        .open({ title, content })
-        .onceClose(() => ed.stopCommand(commandId))
-      this.imageEditor = new constr(content.children[0], this.getEditorConfig());
+      ed.Modal.open({ title, content }).onceClose(() => ed.stopCommand(commandId))
+
+      const editorConfig = this.getEditorConfig(target.get('src'));
+      this.imageEditor = new constr(content.children[0], editorConfig);
       ed.getModel().setEditing(1);
       btn.onclick = () => this.applyChanges();
       opts.onApplyButton(btn);
@@ -213,25 +219,27 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
       ed.getModel().setEditing(0);
     },
 
-    getEditorConfig() {
-      const config = { ...opts.config };
-      const path = this.target.get('src');
+    getEditorConfig(path: string): tuiImageEditor.IOptions {
+      const config: tuiImageEditor.IOptions = { ...opts.config };
 
       if (!config.includeUI) config.includeUI = {};
+
       config.includeUI = {
         theme: {},
         ...config.includeUI,
-        loadImage: { path, name: 1 },
+        loadImage: { path, name: '1' },
         uiSize: { height, width },
       };
+
+      // @ts-ignore
       if (hideHeader) config.includeUI.theme['header.display'] = 'none';
 
       return config;
     },
 
-    createContent() {
+    createContent(): HTMLDivElement {
       const content = document.createElement('div');
-      content.style = 'position: relative';
+      content.style.position = 'relative';
       content.innerHTML = `
         <div></div>
         <button class="tui-image-editor__apply-btn" style="
@@ -253,7 +261,7 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
     },
 
     applyChanges() {
-      const { imageEditor, target, editor } = this;
+      const { imageEditor, target } = this;
       const { AssetManager } = editor;
 
       if (onApply) {
@@ -269,7 +277,7 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
       }
     },
 
-    uploadImage(imageEditor, target, am) {
+    uploadImage(imageEditor: ImageEditor, target, am) {
       const dataURL = imageEditor.toDataURL();
       if (upload) {
         const file = this.dataUrlToBlob(dataURL);
@@ -289,12 +297,12 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
       }
     },
 
-    applyToTarget(result) {
+    applyToTarget(result: string) {
       this.target.set({ src: result });
-      this.editor.Modal.close();
+      editor.Modal.close();
     },
 
-    dataUrlToBlob(dataURL) {
+    dataUrlToBlob(dataURL: string) {
       const data = dataURL.split(',');
       const byteStr = window.atob(data[1]);
       const type = data[0].split(':')[1].split(';')[0];
