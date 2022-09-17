@@ -14,9 +14,9 @@ Add the [TOAST UI Image Editor](https://ui.toast.com/tui-image-editor/) on Image
 
 * Plugin name: `grapesjs-tui-image-editor`
 * Commands
-  * `tui-image-editor` - Open the modal with the image editor
+  * `tui-image-editor` - Open the modal with the image editor.
     Options:
-    * `target` - component on which to get and update the image
+    * `target` - component from which to get and update the image
 
 
 

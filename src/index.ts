@@ -1,6 +1,7 @@
 import type grapesjs from 'grapesjs';
 import type tuiImageEditor from 'tui-image-editor';
 
+type Component = grapesjs.Component;
 type ImageEditor = tuiImageEditor.ImageEditor;
 type IOptions = tuiImageEditor.IOptions;
 type Constructor<K> = { new(...any: any): K };
@@ -49,7 +50,7 @@ export type PluginOptions = {
   commandId?: string;
 
   /**
-   * Icon used in the component toolbar
+   * Icon used in the image component toolbar. Pass an empty string to avoid adding the icon.
    */
   toolbarIcon?: string;
 
@@ -69,7 +70,7 @@ export type PluginOptions = {
    *    imageModel.set('src', dataUrl); // Update the image component
    * }
    */
-  onApply?: ((imageEditor: any, imageModel: any) => void) | null;
+  onApply?: ((imageEditor: ImageEditor, imageModel: Component) => void) | null;
 
   /**
    * If no custom `onApply` is passed and this option is `true`, the result image will be added to assets
@@ -171,51 +172,59 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
   }
 
   // Update image component toolbar
-  const { Components, Commands } = editor;
+  if (opts.toolbarIcon) {
+    editor.Components.addType('image', {
+      extendFn: ['initToolbar'],
+      model: {
+        initToolbar() {
+          const tb = this.get('toolbar');
+          // @ts-ignore
+          const tbExists = tb?.some(item => item.command === commandId);
 
-  Components.addType('image', {
-    extendFn: ['initToolbar'],
-    model: {
-      initToolbar() {
-        const tb = this.get('toolbar');
-        // @ts-ignore
-        const tbExists = tb?.some(item => item.command === commandId);
-
-        if (!tbExists) {
-          tb?.unshift({
-            command: commandId,
-            label: opts.toolbarIcon,
-          });
-          this.set('toolbar', tb);
+          if (!tbExists) {
+            tb?.unshift({
+              command: commandId,
+              label: opts.toolbarIcon,
+            });
+            this.set('toolbar', tb);
+          }
         }
       }
-    }
-  });
+    });
+  }
 
   // Add the image editor command
-  Commands.add(commandId, {
+  const errorOpts = { level: 'error', ns: commandId };
+  editor.Commands.add(commandId, {
     run(ed, s, options = {}) {
       if (!constr) {
-        ed.log('TOAST UI Image editor not found', { level: 'error', ns: commandId });
+        ed.log('TOAST UI Image editor not found', errorOpts);
         return ed.stopCommand(commandId);
       }
 
-      const target = options.target || ed.getSelected();
-      this.target = target;
+      const target = (options.target || ed.getSelected()) as Component;
+
+      if (!target) {
+        ed.log('Target not available', errorOpts);
+        return ed.stopCommand(commandId);
+      }
+
       const content = this.createContent();
       const title = opts.labelImageEditor;
-      const btn = content.children[1];
+      const btn = content.children[1] as HTMLElement;
       ed.Modal.open({ title, content }).onceClose(() => ed.stopCommand(commandId))
 
       const editorConfig = this.getEditorConfig(target.get('src'));
       this.imageEditor = new constr(content.children[0], editorConfig);
-      ed.getModel().setEditing(1);
-      btn.onclick = () => this.applyChanges();
+      // @ts-ignore
+      ed.getModel().setEditing(true);
+      btn.onclick = () => this.applyChanges(target);
       opts.onApplyButton(btn);
     },
 
     stop(ed) {
-      this.imageEditor?.destroy();
+      (this.imageEditor as tuiImageEditor)?.destroy();
+      // @ts-ignore
       ed.getModel().setEditing(0);
     },
 
@@ -260,45 +269,47 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
       return content;
     },
 
-    applyChanges() {
-      const { imageEditor, target } = this;
-      const { AssetManager } = editor;
+    applyChanges(target: Component) {
+      const ied = this.imageEditor as tuiImageEditor;
 
       if (onApply) {
-        onApply(imageEditor, target);
+        onApply(ied, target);
       } else {
-        if (imageEditor.getDrawingMode() === 'CROPPER') {
-          imageEditor.crop(imageEditor.getCropzoneRect()).then(() => {
-            this.uploadImage(imageEditor, target, AssetManager);
+        if (ied.getDrawingMode() === 'CROPPER') {
+          ied.crop(ied.getCropzoneRect()).then(() => {
+            this.uploadImage(ied, target);
           });
         } else {
-          this.uploadImage(imageEditor, target, AssetManager);
+          this.uploadImage(ied, target);
         }
       }
     },
 
-    uploadImage(imageEditor: ImageEditor, target, am) {
+    uploadImage(imageEditor: ImageEditor, target: Component) {
+      const am = editor.Assets;
       const dataURL = imageEditor.toDataURL();
+
       if (upload) {
         const file = this.dataUrlToBlob(dataURL);
+        // @ts-ignore
         am.FileUploader().uploadFile({
           dataTransfer: { files: [file] }
-        }, res => {
+        }, (res: any) => {
           const obj = res && res.data && res.data[0];
           const src = obj && (typeof obj === 'string' ? obj : obj.src);
-          src && this.applyToTarget(src);
+          src && this.applyToTarget(src, target);
         });
       } else {
         addToAssets && am.add({
           src: dataURL,
           name: (target.get('src') || '').split('/').pop(),
         });
-        this.applyToTarget(dataURL);
+        this.applyToTarget(dataURL, target);
       }
     },
 
-    applyToTarget(result: string) {
-      this.target.set({ src: result });
+    applyToTarget(result: string, target: Component) {
+      target.set('src', result);
       editor.Modal.close();
     },
 
