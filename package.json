@@ -1,13 +1,14 @@
 {
   "name": "grapesjs-tui-image-editor",
-  "version": "0.1.3",
+  "version": "1.0.0",
   "description": "GrapesJS TOAST UI Image Editor",
-  "main": "dist/grapesjs-tui-image-editor.min.js",
+  "main": "dist/index.js",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
-    "lint": "eslint src",
-    "v:patch": "npm version --no-git-tag-version patch",
-    "build": "npm run v:patch && webpack --env.production",
-    "start": "webpack-dev-server --open --progress --colors"
+    "build": "grapesjs-cli build",
+    "start": "grapesjs-cli serve"
   },
   "repository": {
     "type": "git",
@@ -21,24 +22,9 @@
   ],
   "author": "Artur Arseniev",
   "license": "BSD-3-Clause",
-  "babel": {
-    "presets": [
-      "@babel/env"
-    ],
-    "plugins": [
-      "@babel/transform-runtime"
-    ]
-  },
   "devDependencies": {
-    "@babel/core": "^7.3.3",
-    "@babel/plugin-transform-runtime": "^7.2.0",
-    "@babel/preset-env": "^7.3.1",
-    "@babel/runtime": "^7.3.1",
-    "babel-loader": "^8.0.5",
-    "eslint": "^5.14.1",
-    "html-webpack-plugin": "^3.2.0",
-    "webpack": "^4.29.5",
-    "webpack-cli": "^3.2.3",
-    "webpack-dev-server": "^3.1.14"
+    "grapesjs": "^0.20.1",
+    "grapesjs-cli": "^3.0.1",
+    "tui-image-editor": "^3.15.3"
   }
 }

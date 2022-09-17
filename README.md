@@ -7,16 +7,13 @@ Add the [TOAST UI Image Editor](https://ui.toast.com/tui-image-editor/) on Image
 ![Preview](https://user-images.githubusercontent.com/11614725/52981724-c195f800-33e1-11e9-98a9-f071a2721761.png)
 
 
-
-
-
 ## Summary
 
 * Plugin name: `grapesjs-tui-image-editor`
 * Commands
-  * `tui-image-editor` - Open the modal with the image editor
+  * `tui-image-editor` - Open the modal with the image editor.
     Options:
-    * `target` - component on which to get and update the image
+    * `target` - component from which to get and update the image
 
 
 
@@ -33,14 +30,13 @@ Add the [TOAST UI Image Editor](https://ui.toast.com/tui-image-editor/) on Image
 |`height`|Default editor height|`650px`|
 |`width`|Default editor width|`100%`|
 |`commandId`|Id to use to create the image editor command|`tui-image-editor`|
-|`toolbarIcon`|Icon used in the component toolbar|`<svg ....`|
+|`toolbarIcon`|Icon used in the image component toolbar. Pass an empty string to avoid adding the icon.|`<svg ....`|
 |`hideHeader`|Hide the default editor header|`true`|
 |`onApply`|By default, GrapesJS takes the modified image, adds it to the Asset Manager and update the target. If you need some custom logic you can use this custom 'onApply' function. `onApply: (imageEditor, imageModel) => {...}`|`null`|
 |`addToAssets`|If no custom `onApply` is passed and this option is `true`, the result image will be added to assets|`true`|
 |`upload`|If no custom `onApply` is passed, on confirm, the edited image, will be passed to the AssetManager's uploader and the result (eg. instead of having the dataURL you'll have the URL) will be passed to the default `onApply` process (update target, etc.)|`false`|
 |`onApplyButton`|The apply button (HTMLElement) will be passed as an argument to this function, once created. This will allow you a higher customization.|`null`|
-|`icons`| The TOAST UI editor isn't compiled with icons, so generally, you should download them and indicate the local path in the `includeUI.theme` configurations. Use this option to change them or set it to `false` to keep what is come in `includeUI.theme`. By default, the plugin will try to use the editor's remote icons (which involves a cross-origin async request, indicated as unsafe by most of the browsers) |`{'menu.normalIcon.path': ...`|
-|`script`|Scripts to load dynamically in case no TOAST UI editor constructor is found|`['...fabric.js', '...tui-code-snippet.js', '...tui-color-picker.js', '...tui-image-editor.min.js']`|
+|`script`|Scripts to load dynamically in case no TOAST UI editor constructor is found|`['...tui-code-snippet.js', '...tui-color-picker.js', '...tui-image-editor.min.js']`|
 |`style`|In case the `script` is loaded this style will be loaded too|`['...tui-color-picker.css', '...tui-image-editor.css']`|
 
 
@@ -82,14 +78,6 @@ Directly in the browser
               initMenu: 'filter',
             },
           },
-          icons: {
-            'menu.normalIcon.path': '../icon-d.svg',
-            'menu.activeIcon.path': '../icon-b.svg',
-            'menu.disabledIcon.path': '../icon-a.svg',
-            'menu.hoverIcon.path': '../icon-c.svg',
-            'submenu.normalIcon.path': '../icon-d.svg',
-            'submenu.activeIcon.path': '../icon-c.svg',
-          },
         }
       }
   });
@@ -99,18 +87,18 @@ Directly in the browser
 Modern javascript
 ```js
 import grapesjs from 'grapesjs';
-import tUIImageEditor from 'grapesjs-tui-image-editor';
+import plugin from 'grapesjs-tui-image-editor';
 
 const editor = grapesjs.init({
   container : '#gjs',
   // ...
-  plugins: [tUIImageEditor],
+  plugins: [plugin],
   pluginsOpts: {
-    [tUIImageEditor]: { /* options */ }
+    [plugin]: { /* options */ }
   }
   // or
   plugins: [
-    editor => tUIImageEditor(editor, { /* options */ }),
+    editor => plugin(editor, { /* options */ }),
   ],
 });
 ```
