@@ -1,6 +1,6 @@
 {
   "name": "grapesjs-tui-image-editor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "GrapesJS TOAST UI Image Editor",
   "main": "dist/index.js",
   "files": [
