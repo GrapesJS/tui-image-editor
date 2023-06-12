@@ -25,7 +25,7 @@
 
 
     <script type="text/javascript">
-      setTimeout(() => {
+      window.onload = () => {
         window.editor = grapesjs.init({
           height: '100%',
           showOffsets: true,
@@ -35,7 +35,7 @@
           fromElement: true,
           plugins: ['gjs-blocks-basic', 'grapesjs-tui-image-editor'],
         });
-      });
+      };
     </script>
   </body>
 </html>
