@@ -50,7 +50,7 @@ Add the [TOAST UI Image Editor](https://ui.toast.com/tui-image-editor/) on Image
 * NPM
   * `npm i grapesjs-tui-image-editor`
 * GIT
-  * `git clone https://github.com/artf/grapesjs-tui-image-editor.git`
+  * `git clone https://github.com/GrapesJS/tui-image-editor.git`
 
 
 
@@ -112,7 +112,7 @@ const editor = grapesjs.init({
 Clone the repository
 
 ```sh
-$ git clone https://github.com/artf/grapesjs-tui-image-editor.git
+$ git clone https://github.com/GrapesJS/tui-image-editor.git
 $ cd grapesjs-tui-image-editor
 ```
 
