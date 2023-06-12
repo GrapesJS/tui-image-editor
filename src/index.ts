@@ -1,7 +1,6 @@
-import type grapesjs from 'grapesjs';
+import type { Component, Plugin } from 'grapesjs';
 import type tuiImageEditor from 'tui-image-editor';
 
-type Component = grapesjs.Component;
 type ImageEditor = tuiImageEditor.ImageEditor;
 type IOptions = tuiImageEditor.IOptions;
 type Constructor<K> = { new(...any: any): K };
@@ -102,7 +101,7 @@ export type PluginOptions = {
   style?: string[];
 };
 
-const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
+const plugin: Plugin<PluginOptions> = (editor, options = {}) => {
   const opts: Required<PluginOptions> = {
     config: {},
     constructor: '',
@@ -137,8 +136,7 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
 
   const getConstructor = (): Constructor<ImageEditor> => {
     return opts.constructor ||
-      // @ts-ignore
-      (hasWindow && window?.tui?.ImageEditor);
+      (hasWindow && (window as any).tui?.ImageEditor);
   };
 
   let constr = getConstructor();
@@ -178,7 +176,6 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
       model: {
         initToolbar() {
           const tb = this.get('toolbar');
-          // @ts-ignore
           const tbExists = tb?.some(item => item.command === commandId);
 
           if (!tbExists) {
@@ -196,6 +193,8 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
   // Add the image editor command
   const errorOpts = { level: 'error', ns: commandId };
   editor.Commands.add(commandId, {
+    imageEditor: null as tuiImageEditor | null,
+
     run(ed, s, options = {}) {
       if (!constr) {
         ed.log('TOAST UI Image editor not found', errorOpts);
@@ -216,7 +215,6 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
 
       const editorConfig = this.getEditorConfig(target.get('src'));
       this.imageEditor = new constr(content.children[0], editorConfig);
-      // @ts-ignore
       ed.getModel().setEditing(true);
       btn.onclick = () => this.applyChanges(target);
       opts.onApplyButton(btn);
@@ -224,12 +222,11 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
 
     stop(ed) {
       (this.imageEditor as tuiImageEditor)?.destroy();
-      // @ts-ignore
-      ed.getModel().setEditing(0);
+      ed.getModel().setEditing(false);
     },
 
-    getEditorConfig(path: string): tuiImageEditor.IOptions {
-      const config: tuiImageEditor.IOptions = { ...opts.config };
+    getEditorConfig(path: string): IOptions {
+      const config: IOptions = { ...opts.config };
 
       if (!config.includeUI) config.includeUI = {};
 
@@ -240,8 +237,10 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
         uiSize: { height, width },
       };
 
-      // @ts-ignore
-      if (hideHeader) config.includeUI.theme['header.display'] = 'none';
+      if (hideHeader) {
+        // @ts-ignore
+        config.includeUI.theme['header.display'] = 'none';
+      }
 
       return config;
     },
@@ -291,9 +290,11 @@ const plugin: grapesjs.Plugin<PluginOptions> = (editor, options = {}) => {
 
       if (upload) {
         const file = this.dataUrlToBlob(dataURL);
-        // @ts-ignore
         am.FileUploader().uploadFile({
-          dataTransfer: { files: [file] }
+          dataTransfer: {
+            // @ts-ignore
+            files: [file]
+          }
         }, (res: any) => {
           const obj = res && res.data && res.data[0];
           const src = obj && (typeof obj === 'string' ? obj : obj.src);
